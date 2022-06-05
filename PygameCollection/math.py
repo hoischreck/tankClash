@@ -30,7 +30,7 @@ class Vector2D:
 
 	# self is projected on to v2
 	def projectionLength(self, v2):
-		return self.magnitude()*self.enclosedAngle(v2)
+		return self.magnitude()*cos(self.enclosedAngle(v2))
 
 	def slope(self):
 		if self.x == 0:
@@ -129,7 +129,9 @@ class Vector2D:
 	# v1 is projected on to v2
 	@classmethod
 	def fromProjection(cls, v1, v2):
-		return Vector2D.copy(v2) * v1.projectionLength(v2)
+		c = Vector2D.copy(v2)
+		c.toUnitVec()
+		return  c * v1.projectionLength(v2)
 
 	# v1 is reflected at v2
 	@classmethod

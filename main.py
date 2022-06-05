@@ -91,8 +91,8 @@ class Tank(MovableSprite, BasicMSpriteController):
 			self.game.drawingQueue.append(projectile)
 
 class TankClash(Base2DGame):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.players = set()
 		self.controls = {}
 
@@ -104,6 +104,7 @@ class TankClash(Base2DGame):
 		self.map.addWallV((100, 0), 1000)
 		self.map.addWallH((100, 995), 800)
 		self.map.addWallH((100, 0), 800)
+		self.map.addWall((450, 995), (900, 450))
 		self.drawingQueue.insert(0, self.map)
 
 		p1 = Player("Ivo", 1, self)
@@ -156,23 +157,21 @@ class TankClash(Base2DGame):
 		# player wall collisions
 
 		#print(f"computation time {default_timer()-start}s")
-		for w in self.map.walls:
-			showVector(self.screen, w.norm, (w.start.x+w.end.x)/2, (w.start.y+w.end.y)/2)
+		# for w in self.map.walls:
+		# 	showVector(self.screen, w.norm, (w.start.x+w.end.x)/2, (w.start.y+w.end.y)/2)
 
 		for player in self.players:
-			showVecDirSprite(player.tank)
+			#showVecDirSprite(player.tank)
 			toBeRemoved = set()
 			# checks bullet timeout
 			for b in player.tank.ammo.activeShots:
-				showVecDirSprite(b)
+				#showVecDirSprite(b)
 				if b.hasExpired():
 					toBeRemoved.add(b)
 
 			for i in toBeRemoved:
 				player.tank.ammo.kill(i)
 				self.drawingQueue.remove(i)
-
-
 
 if __name__ == "__main__":
 	g = TankClash()

@@ -33,6 +33,7 @@ def showVector(screen, vector: Vector2D, x, y, length=100, lineWidth=7, headLeng
     vectors = list()
     points = list()
 
+    #todo: refine this
     if scale:
         length *= vector.magnitude()
 

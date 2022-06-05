@@ -22,14 +22,14 @@ class BaseDrawingQueue:
 			i.draw()
 
 class Base2DGame(ABC):
-	def __init__(self, name="[PLACEHOLDER]"):
+	def __init__(self, name="[PLACEHOLDER]", tps=60):
 		self.name = name
 		self.windowSize = (1920, 1080)
 		self.w, self.h = self.windowSize
 		self.windowCaption = "WindowCaption"
 		self.backgroundColor = (255, 255, 255)
 
-		self.tps = 60
+		self.tps = tps
 
 		self.drawingQueue: BaseDrawingQueue = BaseDrawingQueue()
 		self.key: Keys = None

@@ -53,10 +53,11 @@ class TankMap(GraphicalObj):
 	def addWallV(self, start, length):
 		self.addWall(start, (start[0], start[1]+length))
 
+	#todo: distances a calculated falsely (see diagonal wall)
 	def _distanceToWall(self, x, y, wall):
 		m = (wall.end-wall.start).slope()
 		xp = wall.start.x if m is None else (m**2*wall.start.x+x-m*(wall.start.y-y))/(m**2+1)
-		yp = y if m is None else m*xp+(wall.start.y)
+		yp = y if m is None else m*(xp-wall.start.x)+wall.start.y
 		return Point2D.distance(x, y, xp, yp)
 
 	def draw(self, surface=None):
