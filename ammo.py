@@ -21,8 +21,12 @@ class CanonBall(Projectile):
 		self.v = 10
 
 	def update(self):
+		oldPos = self.pos
 		self.pos += self.dir * self.v
 		super().update()
+
+		if (wall := self.game.map.hitsWall(self)):
+			print("hit:", wall.start, wall.end)
 
 # AMMO-classes ---------
 class Ammunition:

@@ -1,4 +1,6 @@
-from PygameCollection.math import Vector2D
+import numpy as np
+
+from PygameCollection.math import Vector2D, Point2D
 from PygameCollection.gameObjects import GraphicalObj
 import pygame
 
@@ -34,11 +36,30 @@ class TankMap(GraphicalObj):
 	def hitsAnyWall(self, sprite):
 		return self.mask.overlap(sprite.getMask(), sprite.getMaskOffset().toTuple())
 
+	# checks if sprite hits wall and which one that is
+	def hitsWall(self, sprite):
+		# 1.) get point of collision 2.) distance to all lines 3.) choose closest wall
+		cp = self.hitsAnyWall(sprite)
+		if cp is None:
+			return
+		distances = {w: self._distanceToWall(*cp, w) for w in self.walls}
+		sd = sorted(distances.items(), key=lambda x: x[1])
+		collidedWall = sd[0][0]
+		# handle reflection -> 1.) calc norm vector 2.) compare with direction of shot 3.) combine into a new direction vector
+
+
+
 	def addWallH(self, start, length):
 		self.addWall(start, (start[0]+length, start[1]))
 
 	def addWallV(self, start, length):
 		self.addWall(start, (start[0], start[1]+length))
+
+	def _distanceToWall(self, x, y, wall):
+		m = (wall.end-wall.start).slope()
+		xp = wall.start.x if m is None else (m**2*wall.start.x+x-m*(wall.start.y-y))/(m**2+1)
+		yp = y if m is None else m*xp+(wall.start.y)
+		return Point2D.distance(x, y, xp, yp)
 
 	def draw(self, surface=None):
 		for w in self.walls:
