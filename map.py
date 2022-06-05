@@ -11,6 +11,7 @@ class Wall(GraphicalObj):
 		self.end = Vector2D.fromIterable(end)
 		self.color = (0, 0, 0)
 		self.width = 10
+		self.norm = Vector2D.getNormVec(self.start-self.end)
 
 	def draw(self, surface=None):
 		pygame.draw.line(self.screen if surface is None else surface, self.color, self.start.toTuple(), self.end.toTuple(), self.width)
@@ -44,10 +45,7 @@ class TankMap(GraphicalObj):
 			return
 		distances = {w: self._distanceToWall(*cp, w) for w in self.walls}
 		sd = sorted(distances.items(), key=lambda x: x[1])
-		collidedWall = sd[0][0]
-		# handle reflection -> 1.) calc norm vector 2.) compare with direction of shot 3.) combine into a new direction vector
-
-
+		return sd[0][0]
 
 	def addWallH(self, start, length):
 		self.addWall(start, (start[0]+length, start[1]))

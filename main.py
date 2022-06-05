@@ -8,7 +8,7 @@ from PygameCollection.math import Vector2D, rad2deg
 from PygameCollection.gameObjects import MovableSprite, showRect, showMask
 from PygameCollection.game import Base2DGame, KeyType
 from PygameCollection.templates import BasicMSpriteController
-from PygameCollection.utils import loadConvFacScaledImg, loadConvScaledImg
+from PygameCollection.utils import loadConvFacScaledImg, loadConvScaledImg, showVecDirSprite, showVector
 
 from ammo import Ammunition, AmmoType
 from map import Wall, TankMap
@@ -122,23 +122,23 @@ class TankClash(Base2DGame):
 		})
 		p1.setPosition(Vector2D(self.w // 3, self.h // 2))
 
-		p2 = Player("Flitzi", 2, self)
-		img = loadConvFacScaledImg(("assets", "img", "TankRed.png"), 0.5)
-		p2.setTank(Tank(self, img, Vector2D(0, 0)))
-		p2.setControls({
-			"up": "forward",
-			"left": "left",
-			"down": "backward",
-			"right": "right",
-			"return": "shoot"
-		})
-		p2.setPosition(Vector2D((self.w // 3) * 2, self.h // 2))
-
-		self.players.add(p2)
+		# p2 = Player("Flitzi", 2, self)
+		# img = loadConvFacScaledImg(("assets", "img", "TankRed.png"), 0.5)
+		# p2.setTank(Tank(self, img, Vector2D(0, 0)))
+		# p2.setControls({
+		# 	"up": "forward",
+		# 	"left": "left",
+		# 	"down": "backward",
+		# 	"right": "right",
+		# 	"return": "shoot"
+		# })
+		# p2.setPosition(Vector2D((self.w // 3) * 2, self.h // 2))
+		#
+		# self.players.add(p2)
 		self.players.add(p1)  # create playerLobby class
 
 		self.drawingQueue.append(p1.tank)
-		self.drawingQueue.append(p2.tank)
+		#self.drawingQueue.append(p2.tank)
 
 	def loop(self):
 		for k in self.controls:
@@ -156,17 +156,22 @@ class TankClash(Base2DGame):
 		# player wall collisions
 
 		#print(f"computation time {default_timer()-start}s")
+		for w in self.map.walls:
+			showVector(self.screen, w.norm, (w.start.x+w.end.x)/2, (w.start.y+w.end.y)/2)
 
 		for player in self.players:
+			showVecDirSprite(player.tank)
 			toBeRemoved = set()
 			# checks bullet timeout
 			for b in player.tank.ammo.activeShots:
+				showVecDirSprite(b)
 				if b.hasExpired():
 					toBeRemoved.add(b)
 
 			for i in toBeRemoved:
 				player.tank.ammo.kill(i)
 				self.drawingQueue.remove(i)
+
 
 
 if __name__ == "__main__":

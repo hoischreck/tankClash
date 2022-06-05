@@ -81,6 +81,9 @@ class Base2DGame(ABC):
 
 	def __loopClose(self):
 		self.clock.tick(self.tps)
+		#todo: remove this?
+		#self.screen.blit(pygame.transform.flip(self.screen, True, True), (0, 0))
+		#self.screen.blit(pygame.transform.rotate(self.screen, 180), (0, 0))
 		pygame.display.flip()
 
 class KeyType(Enum):

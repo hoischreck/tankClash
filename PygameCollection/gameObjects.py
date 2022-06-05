@@ -97,7 +97,7 @@ def showRect(mSprite: MovableSprite, width=4, debugDirLineLen=150):
 		def __inner(*args, **kwargs):
 			r = drawMethod(*args, **kwargs)
 			pygame.draw.rect(mSprite.screen, (255, 0, 0), mSprite.rect, width)
-			pygame.draw.line(mSprite.screen, (255, 0, 0), mSprite.pos.toTuple(), (mSprite.pos + mSprite.dir * debugDirLineLen).toTuple(), 10)
+			#pygame.draw.line(mSprite.screen, (255, 0, 0), mSprite.pos.toTuple(), (mSprite.pos + mSprite.dir * debugDirLineLen).toTuple(), 10) # see showVector()
 			return r
 		return __inner
 	mSprite.draw = _drawDebug(mSprite.draw)

@@ -1,8 +1,10 @@
 import pygame
 from PygameCollection.gameObjects import MovableSprite
+from PygameCollection.math import Vector2D
 from abc import ABC
 from enum import Enum
 from timeit import default_timer
+from math import pi
 
 # PROJECTILE-classes ---------
 class Projectile(MovableSprite, ABC):
@@ -25,8 +27,24 @@ class CanonBall(Projectile):
 		self.pos += self.dir * self.v
 		super().update()
 
+		#todo: collision system fails calculation
 		if (wall := self.game.map.hitsWall(self)):
-			print("hit:", wall.start, wall.end)
+			self.pos = oldPos
+			# handle reflection -> 1.) calc norm vector 2.) compare with direction of shot 3.) combine into a new direction vector
+			normVec = wall.norm
+			if self.dir.enclosedAngle(normVec) > pi/2:
+				normVec.toCounter()
+			from PygameCollection.math import rad2deg
+			v = Vector2D.fromSymReflection(self.dir, normVec)
+			v.toUnitVec()
+			v.toCounter()
+			a, b = rad2deg(self.dir.enclosedAngle(normVec)), rad2deg(v.enclosedAngle(Vector2D.asCounterVector(normVec)))
+			d = abs(a-b)
+			print(a, b, d)
+			# if d > 60:
+			# 	print(wall.start, wall.end)
+			# 	quit()
+			self.dir = v
 
 # AMMO-classes ---------
 class Ammunition:
@@ -78,7 +96,7 @@ class AmmoTypeData:
 		return Ammunition(self.ammoClass, self.shotInterval, self.shotMaximum, self.lifetime, self.img)
 
 class AmmoType(Enum):
-	NORMAL = AmmoTypeData(CanonBall, shotInterval=0.1, shotMaximum=10)
+	NORMAL = AmmoTypeData(CanonBall, shotInterval=0.1, shotMaximum=100, lifetime=10)
 
 	@classmethod
 	def getInstanceOf(cls, ammoType):
