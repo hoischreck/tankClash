@@ -1,7 +1,7 @@
 import pygame, sys, os
 from math import pi
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import Enum, auto
 from timeit import default_timer
 
 from PygameCollection.math import Vector2D, rad2deg
@@ -56,6 +56,7 @@ class Tank(MovableSprite, BasicMSpriteController):
 
 		self.ammo: Ammunition = Ammunition.getAmmo(AmmoType.NORMAL)
 
+	# recursive collision correction
 	#todo: enhance performance, generalize approach and evaluate efficiency
 	def update(self, scale=1.0, threshold=0.01):
 		posBefore = self.pos
@@ -100,12 +101,14 @@ class TankClash(Base2DGame):
 		AmmoType.setImage(AmmoType.NORMAL, loadConvScaledImg(("assets", "img", "ProjectileBall.png"), (30, 30)))
 
 		self.map = TankMap(self)
-		self.map.addWall((900, 0),(900, 1000))
-		self.map.addWallV((100, 0), 1000)
-		self.map.addWallH((100, 995), 800)
-		self.map.addWallH((100, 0), 800)
-		self.map.addWall((450, 995), (900, 450))
+		# self.map.addWall((900, 0),(900, 1000))
+		# self.map.addWallV((100, 0), 1000)
+		# self.map.addWallH((100, 995), 800)
+		# self.map.addWallH((100, 0), 800)
+		# self.map.addWall((450, 995), (900, 450))
+		self.map.load("testMap")
 		self.drawingQueue.insert(0, self.map)
+		#self.map.save("testMap")
 
 		p1 = Player("Ivo", 1, self)
 		img = loadConvFacScaledImg(("assets", "img", "TankBlue.png"), 0.5)
@@ -173,6 +176,102 @@ class TankClash(Base2DGame):
 				player.tank.ammo.kill(i)
 				self.drawingQueue.remove(i)
 
+class ClipMode(Enum):
+	HORIZONTAL = "Horizontal"
+	VERTICAL = "Vertikal"
+	DIAGONAL = "Diagonal"
+
+class TankClashMapEditor(TankClash):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.startPoint = None
+		self.endPoint = None
+		self.fixedTargetEnd = None
+		self.clipMode = ClipMode.HORIZONTAL
+		self.font = pygame.font.Font(pygame.font.get_default_font(), 30)
+
+	def setup(self):
+		AmmoType.setImage(AmmoType.NORMAL, loadConvScaledImg(("assets", "img", "ProjectileBall.png"), (30, 30)))
+
+		self.map = TankMap(self)
+		self.drawingQueue.append(self.map)
+		# base map
+		offset = Wall.STANDARD_WIDTH//2
+		#todo: use this or implement reflection by "hitting" walls (basic norm reflection)
+		self.map.addWallH((0, offset), self.w)
+		self.map.addWallH((0, self.h-offset), self.w)
+		self.map.addWallV((offset-1, offset), self.h)
+		self.map.addWallV((self.w-offset, offset), self.h)
+
+		p1 = Player("Ivo", 1, self)
+		img = loadConvFacScaledImg(("assets", "img", "TankBlue.png"), 0.5)
+		p1.setTank(Tank(self, img, Vector2D(0, 0)))
+		# showRect(p1.tank)
+		# hideHitbox(p1.tank)
+		# showMask(p1.tank)
+
+		p1.setControls({
+			"up": "forward",
+			"left": "left",
+			"down": "backward",
+			"right": "right",
+			"return": "shoot"
+		})
+
+		p1.setPosition(Vector2D(self.w // 3, self.h // 2))
+		self.players.add(p1)
+
+		self.drawingQueue.append(p1.tank)
+
+	def loop(self):
+		for k in self.controls:
+			if self.key.heldDown(k, KeyType.STRING):
+				self.controls[k]()
+
+		# implement fix points for walls (implement start and end fix)
+		if self.mouse.heldDown(3):
+
+			# if start point was already set
+			if self.startPoint is not None:
+				if self.clipMode == ClipMode.HORIZONTAL:
+					self.fixedTargetEnd = (self.mouse.getPos()[0], self.startPoint[1])
+				elif self.clipMode == ClipMode.VERTICAL:
+					self.fixedTargetEnd = (self.startPoint[0], self.mouse.getPos()[1])
+				elif self.clipMode == ClipMode.DIAGONAL:
+					self.fixedTargetEnd = (0, 0) #todo: implement
+				else:
+					pass # todo: what to do?
+		else:
+			self.fixedTargetEnd = self.mouse.getPos()
+
+		# confirm selection
+		if self.mouse.mouseUp(1):
+			if self.startPoint is None:
+				self.startPoint = self.mouse.getPos()
+			elif self.endPoint is None:
+				self.endPoint = self.fixedTargetEnd
+				self.map.addWall(self.startPoint, self.endPoint)
+				self.startPoint, self.endPoint = None, None
+
+		# show wall preview
+		if self.startPoint is not None:
+			pygame.draw.line(self.screen, (122, 122, 122), self.startPoint, self.fixedTargetEnd, 5)
+
+		if self.key.keyUp(pygame.K_z):
+			self.map.removeLast(minAmount=4) #4 base walls are used as a boundary
+		elif self.key.keyUp(pygame.K_h):
+			self.clipMode = ClipMode.HORIZONTAL
+		elif self.key.keyUp(pygame.K_v):
+			self.clipMode = ClipMode.VERTICAL
+		elif self.key.keyUp(pygame.K_d):
+			self.clipMode = ClipMode.DIAGONAL
+
+		textSurface = self.font.render(f"Current clipping mode: {self.clipMode.value}", True, (0, 0, 0))
+		self.screen.blit(textSurface, (10, 10))
+
+
 if __name__ == "__main__":
-	g = TankClash()
-	g.run()
+	#g = TankClash()
+	#g.run()
+	m = TankClashMapEditor()
+	m.run()

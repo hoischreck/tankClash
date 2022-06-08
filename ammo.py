@@ -28,16 +28,9 @@ class CanonBall(Projectile):
 		super().update()
 
 		if (wall := self.game.map.hitsWall(self)):
-			print(wall.start, wall.end)
+			# todo: handle edge case -> projectile is spawned inside wall
 			self.pos = oldPos
-			# handle reflection -> 1.) calc norm vector 2.) compare with direction of shot 3.) combine into a new direction vector
-			normVec = wall.norm
-			if self.dir.enclosedAngle(normVec) > pi/2:
-				normVec.toCounter()
-			v = Vector2D.fromSymReflection(self.dir, normVec)
-			v.toUnitVec()
-			v.toCounter()
-			self.dir = v
+			self.dir = wall.reflectVector(self.dir)
 
 # AMMO-classes ---------
 class Ammunition:
