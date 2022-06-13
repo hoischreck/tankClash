@@ -92,6 +92,8 @@ class Tank(MovableSprite, BasicMSpriteController):
 			self.game.drawingQueue.append(projectile)
 
 class TankClash(Base2DGame):
+	MAP_PATH = os.path.join("maps")
+
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.players = set()
@@ -106,7 +108,7 @@ class TankClash(Base2DGame):
 		# self.map.addWallH((100, 995), 800)
 		# self.map.addWallH((100, 0), 800)
 		# self.map.addWall((450, 995), (900, 450))
-		self.map.load("testMap")
+		self.map.load("testMap1")
 		self.drawingQueue.insert(0, self.map)
 		#self.map.save("testMap")
 
@@ -180,10 +182,13 @@ class ClipMode(Enum):
 	HORIZONTAL = "Horizontal"
 	VERTICAL = "Vertikal"
 	DIAGONAL = "Diagonal"
+	CORNER = "Corner"
 
 class TankClashMapEditor(TankClash):
+
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
 		self.startPoint = None
 		self.endPoint = None
 		self.fixedTargetEnd = None
@@ -191,6 +196,7 @@ class TankClashMapEditor(TankClash):
 		self.font = pygame.font.Font(pygame.font.get_default_font(), 30)
 
 	def setup(self):
+		print("save map by pressing 'ctrl+s'")
 		AmmoType.setImage(AmmoType.NORMAL, loadConvScaledImg(("assets", "img", "ProjectileBall.png"), (30, 30)))
 
 		self.map = TankMap(self)
@@ -227,10 +233,11 @@ class TankClashMapEditor(TankClash):
 		for k in self.controls:
 			if self.key.heldDown(k, KeyType.STRING):
 				self.controls[k]()
+		# snap courser to closest wall point
+		#if self.key.heldDown(pygame.K_LSHIFT) and self.key.keyDown(pygame.K_s) and self.startPoint is None:
 
-		# implement fix points for walls (implement start and end fix)
+
 		if self.mouse.heldDown(3):
-
 			# if start point was already set
 			if self.startPoint is not None:
 				if self.clipMode == ClipMode.HORIZONTAL:
@@ -238,9 +245,18 @@ class TankClashMapEditor(TankClash):
 				elif self.clipMode == ClipMode.VERTICAL:
 					self.fixedTargetEnd = (self.startPoint[0], self.mouse.getPos()[1])
 				elif self.clipMode == ClipMode.DIAGONAL:
-					self.fixedTargetEnd = (0, 0) #todo: implement
+					mP = self.mouse.getPos()
+					xM = mP[0]
+					if mP[1] >= self.startPoint[1]:
+						self.fixedTargetEnd = (xM, self.startPoint[1]+(xM-self.startPoint[0])) #todo: implement
+					else:
+						self.fixedTargetEnd = (xM, self.startPoint[1]-(xM-self.startPoint[0])) #todo: implement
+				elif self.clipMode == ClipMode.CORNER:
+					self.fixedTargetEnd = self.map.closestWallCorner(*self.mouse.getPos()).toTuple()
 				else:
 					pass # todo: what to do?
+			else:
+				self.mouse.setPos(self.map.closestWallCorner(*self.mouse.getPos()).toTuple())
 		else:
 			self.fixedTargetEnd = self.mouse.getPos()
 
@@ -265,9 +281,18 @@ class TankClashMapEditor(TankClash):
 			self.clipMode = ClipMode.VERTICAL
 		elif self.key.keyUp(pygame.K_d):
 			self.clipMode = ClipMode.DIAGONAL
+		elif self.key.keyUp(pygame.K_c):
+			self.clipMode = ClipMode.CORNER
 
+		# render clipping mode as text
 		textSurface = self.font.render(f"Current clipping mode: {self.clipMode.value}", True, (0, 0, 0))
 		self.screen.blit(textSurface, (10, 10))
+
+		# save map
+		if self.key.heldDown(pygame.K_LCTRL) and self.key.keyDown(pygame.K_s):
+			mapName = input("enter a map name:")
+			self.map.save(os.path.join(TankClash.MAP_PATH, mapName))
+			print(f"save map: '{mapName}'")
 
 
 if __name__ == "__main__":

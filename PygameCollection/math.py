@@ -99,6 +99,9 @@ class Vector2D:
 		else:
 			raise TypeError
 
+	def __hash__(self):
+		return hash(self.toTuple())
+
 	@classmethod
 	def fromIterable(cls, iterable, dtype=np.double):
 		assert len(iterable) == 2

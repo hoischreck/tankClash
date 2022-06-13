@@ -19,6 +19,8 @@ class Wall(GraphicalObj):
 	# todo: add small circles to the end of a wall to make them look "cleaner"
 	def draw(self, surface=None):
 		pygame.draw.line(self.screen if surface is None else surface, self.color, self.start.toTuple(), self.end.toTuple(), self.width)
+		#pygame.draw.circle(self.screen, self.color, self.start.toTuple(), self.width)
+		#pygame.draw.circle(self.screen, self.color, self.end.toTuple(), self.width)
 
 	# reflects a vector at the norm vector (e.g. used in projectile reflection logic)
 	def reflectVector(self, v):
@@ -75,6 +77,18 @@ class TankMap(GraphicalObj):
 
 	def addWallV(self, start, length):
 		self.addWall(start, (start[0], start[1]+length))
+
+	def allWallPoints(self):
+		return {p for w in self.walls for p in (w.start, w.end)}
+
+	def closestWallCorner(self, x, y):
+		closest = (Vector2D(0, 0), float("inf"))
+		referencePoint = Vector2D(x, y)
+		for p in self.allWallPoints():
+			d = (p - referencePoint).magnitude()
+			if d < closest[1]:
+				closest = (p, d)
+		return closest[0]
 
 	def _distanceToWall(self, x, y, wall):
 		m = (wall.end-wall.start).slope()
