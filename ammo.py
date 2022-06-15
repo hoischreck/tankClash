@@ -14,23 +14,27 @@ class Projectile(MovableSprite, ABC):
 		self.lifetime = 2 # in seconds
 
 	def hasExpired(self):
-		return default_timer() - self.born > self.lifetime
+		return default_timer() - self.born > self.lifetime if self.lifetime != -1 else False
 
 
 class CanonBall(Projectile):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.v = 10
+		self.lastCollided = None
 
 	def update(self):
 		oldPos = self.pos
 		self.pos += self.dir * self.v
 		super().update()
-
-		if (wall := self.game.map.hitsWall(self)):
+		if (wall := self.game.map.hitsWall(self)) and wall != self.lastCollided:
+			self.lastCollided = wall
 			# todo: handle edge case -> projectile is spawned inside wall
 			self.pos = oldPos
 			self.dir = wall.reflectVector(self.dir)
+
+
+
 
 # AMMO-classes ---------
 class Ammunition:
@@ -81,8 +85,9 @@ class AmmoTypeData:
 		assert self.img is not None, "'img' attribute must be set"
 		return Ammunition(self.ammoClass, self.shotInterval, self.shotMaximum, self.lifetime, self.img)
 
+# lifetime = -1 --> infinte
 class AmmoType(Enum):
-	NORMAL = AmmoTypeData(CanonBall, shotInterval=0.1, shotMaximum=100, lifetime=10)
+	NORMAL = AmmoTypeData(CanonBall, shotInterval=0.1, shotMaximum=100, lifetime=-1)
 
 	@classmethod
 	def getInstanceOf(cls, ammoType):

@@ -66,8 +66,6 @@ class MovableSprite(Sprite2D, ABC):
 		self.rotOffset = None
 		self.staticMask = self.getMask()
 
-		self._tryUpdate = list()
-
 	# set rotation offset (difference between standard vec(1, 0) and sprite direction)
 	def setRotationOffset(self, rotOffset):
 		self.rotOffset = rotOffset
@@ -113,4 +111,15 @@ def showMask(mSprite: MovableSprite, width=4):
 			pygame.draw.lines(mSprite.screen, (255, 0, 0), True, points, width)
 			return r
 		return __inner
+	mSprite.draw = _drawDebug(mSprite.draw)
+
+def showCenter(mSprite: MovableSprite, radius=5):
+	def _drawDebug(drawMethod):
+		def __inner(*args, **kwargs):
+			r = drawMethod(*args, **kwargs)
+			pygame.draw.circle(mSprite.screen, (255, 0, 0), mSprite.rect.center, radius)
+			return r
+
+		return __inner
+
 	mSprite.draw = _drawDebug(mSprite.draw)

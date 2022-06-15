@@ -1,15 +1,20 @@
+from PygameCollection.game import ObjController
 from PygameCollection.gameObjects import MovableSprite
 from PygameCollection.math import Vector2D
 from math import pi
-from abc import ABC
-
-# A controller mutates game obj attributes. Mainly used for movement
-class ObjController(ABC):
-	pass
 
 #todo: automate _tryUpdate paradigm
 # -> collision detection uses scaling property of actions
 class BasicMSpriteController(ObjController):
+	def __init__(self):
+		super().__init__()
+		self.actions = {
+			"left": self.left,
+			"right": self.right,
+			"forward": self.forward,
+			"backward": self.backward,
+		}
+
 	def left(self):
 		self._tryUpdate.append(self._left)
 	def _left(self, scale=1):

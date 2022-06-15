@@ -23,6 +23,7 @@ class BaseDrawingQueue:
 
 class Base2DGame(ABC):
 	def __init__(self, name="[PLACEHOLDER]", tps=60):
+		pygame.init()
 		self.name = name
 		self.windowSize = (1920, 1080)
 		self.w, self.h = self.windowSize
@@ -154,3 +155,24 @@ class Mouse:
 	def mouseUp(self, mouseButton):
 		return self.__checkEvt(mouseButton, pygame.MOUSEBUTTONUP)
 
+
+# A controller mutates game obj attributes. Mainly used for movement
+class ObjController(ABC):
+	def __init__(self):
+		# any performed action should be handled through the tryUpdate list to allow for proper handling (e.g. collision detection)
+		# it's only implemented as a generalization and musn't be used (example in class 'Tank')
+		self._tryUpdate = list()
+		self.actions = {}
+
+class GameObjControlManager:
+	def __init__(self):
+		self.controls = {}
+
+	def bindSpriteAction(self, sprite: ObjController, key, action):
+		self.controls[key] = sprite.actions[action]
+
+	def bindCallable(self, key, callable):
+		self.controls[key] = callable
+
+	def unbindKey(self, key):
+		del self.controls[key]

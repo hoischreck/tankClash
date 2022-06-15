@@ -43,6 +43,9 @@ class Vector2D:
 		r = a if self.y >= 0 else 2*pi - a
 		return r
 
+	def toDegrees(self):
+		return rad2deg(self.toRadiant())
+
 	def toTuple(self):
 		return self.x, self.y
 
@@ -190,5 +193,4 @@ class Matrix2D:
 	def fromRotation(cls, radiant):
 		i = Vector2D.fromRadiant(radiant)
 		j = Vector2D.fromRadiant(radiant+pi/2)
-		#print("i:", rad2deg(i.toRadiant()))
 		return Matrix2D.fromVectors(i, j)

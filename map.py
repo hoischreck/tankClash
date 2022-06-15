@@ -6,6 +6,7 @@ from PygameCollection.gameObjects import GraphicalObj
 import pygame
 
 class Wall(GraphicalObj):
+	#todo: use
 	STANDARD_WIDTH = 10
 
 	def __init__(self, game, start, end):
@@ -17,10 +18,12 @@ class Wall(GraphicalObj):
 		self.norm = Vector2D.getNormVec(self.start-self.end)
 
 	# todo: add small circles to the end of a wall to make them look "cleaner"
+	# extra width is used for example in finding positions for placing a rectangle, by enhancing the mask size by drawing thicker walls
 	def draw(self, surface=None):
-		pygame.draw.line(self.screen if surface is None else surface, self.color, self.start.toTuple(), self.end.toTuple(), self.width)
-		#pygame.draw.circle(self.screen, self.color, self.start.toTuple(), self.width)
-		#pygame.draw.circle(self.screen, self.color, self.end.toTuple(), self.width)
+		s = self.screen if surface is None else surface
+		pygame.draw.line(s, self.color, self.start.toTuple(), self.end.toTuple(), self.width)
+		#pygame.draw.circle(s, self.color, self.start.toTuple(), (self.width+extraWidth)/2)
+		#pygame.draw.circle(s, self.color, self.end.toTuple(), (self.width+extraWidth)/2)
 
 	# reflects a vector at the norm vector (e.g. used in projectile reflection logic)
 	def reflectVector(self, v):
@@ -43,6 +46,7 @@ class TankMap(GraphicalObj):
 	def __init__(self, game):
 		super().__init__(game)
 		self.walls = list()
+		self.mask: pygame.mask.Mask = None
 		self._renewMask()
 
 	def addWall(self, start, end):
@@ -90,6 +94,24 @@ class TankMap(GraphicalObj):
 				closest = (p, d)
 		return closest[0]
 
+	# returns a mask that is true for every bit that has enough space to fit a rect with given width and height
+	def maskFittingRect(self, w, h):
+		# basic approach, which does not work pixel perfect
+		s = pygame.Surface(self.game.windowSize, pygame.SRCALPHA)
+		self.draw(s)
+		# draw a rect at every end of an wall, so that sideways collision is not possible
+		for wall in self.walls:
+			l = wall.width + w if w > h else h # extra width
+			t = pygame.Surface(((wall.end-wall.start).magnitude()+l, l+2*(wall.width)), pygame.SRCALPHA) #todo: maybe 2*(wall.width) is wrong
+			t.fill((255, 255, 255))
+			tmpSurface = pygame.transform.rotate(t, -(wall.end-wall.start).toDegrees())
+			offset = Vector2D(-tmpSurface.get_width()//2, -tmpSurface.get_height()//2)
+			s.blit(tmpSurface, ((wall.start+wall.end)*0.5+offset).toTuple())
+
+		m = pygame.mask.from_surface(s)
+		m.invert()
+		return m
+
 	def _distanceToWall(self, x, y, wall):
 		m = (wall.end-wall.start).slope()
 		xp = wall.start.x if m is None else (m**2*wall.start.x+x-m*(wall.start.y-y))/(m**2+1)
@@ -97,9 +119,12 @@ class TankMap(GraphicalObj):
 		return Point2D.distance(x, y, xp, yp)
 
 	def _renewMask(self):
+		self.mask = self.__maskFromWalls()
+
+	def __maskFromWalls(self):
 		s = pygame.Surface(self.game.windowSize, pygame.SRCALPHA)
 		self.draw(s)
-		self.mask = pygame.mask.from_surface(s)
+		return pygame.mask.from_surface(s)
 
 	def draw(self, surface=None):
 		for w in self.walls:
