@@ -1,5 +1,6 @@
 import numpy as np
 import pygame, os
+from timeit import default_timer
 from math import pi
 from PygameCollection.math import Vector2D, Matrix2D
 from PygameCollection.gameObjects import MovableSprite
@@ -64,3 +65,11 @@ def showVector(screen, vector: Vector2D, x, y, length=100, lineWidth=7, headLeng
 
 def showVecDirSprite(sprite: MovableSprite, *args, **kwargs):
     showVector(sprite.screen, sprite.dir, *sprite.pos.toTuple(), *args, **kwargs)
+
+def printRuntime(callable):
+    def __inner(*args, **kwargs):
+        start = default_timer()
+        r = callable(*args, **kwargs)
+        print(default_timer()-start)
+        return r
+    return __inner

@@ -15,24 +15,20 @@ class BasicMSpriteController(ObjController):
 			"backward": self.backward,
 		}
 
-	def left(self):
-		self._tryUpdate.append(self._left)
-	def _left(self, scale=1):
+	@ObjController.tryAction
+	def left(self, scale=1):
 		self.rot = self.rot - (self.rotSpeed*scale) % (2 * pi)
 		self.dir = Vector2D.fromRadiant(self.rot + self.rotOffset)
 
-	def right(self):
-		self._tryUpdate.append(self._right)
-	def _right(self, scale=1):
+	@ObjController.tryAction
+	def right(self, scale=1):
 		self.rot = self.rot + (self.rotSpeed*scale) % (2 * pi)
 		self.dir = Vector2D.fromRadiant(self.rot + self.rotOffset)
 
-	def forward(self):
-		self._tryUpdate.append(self._forward)
-	def _forward(self, scale=1):
+	@ObjController.tryAction
+	def forward(self, scale=1):
 		self.pos += (self.dir * self.v)*scale
 
-	def backward(self):
-		self._tryUpdate.append(self._backward)
-	def _backward(self, scale=1):
+	@ObjController.tryAction
+	def backward(self, scale=1):
 		self.pos -= (self.dir * self.v)*scale

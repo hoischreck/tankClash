@@ -156,13 +156,33 @@ class Mouse:
 		return self.__checkEvt(mouseButton, pygame.MOUSEBUTTONUP)
 
 
-# A controller mutates game obj attributes. Mainly used for movement
+# A controller mutates game obj attributes (e.g. used in movement controllers to alternate position)
 class ObjController(ABC):
 	def __init__(self):
 		# any performed action should be handled through the tryUpdate list to allow for proper handling (e.g. collision detection)
 		# it's only implemented as a generalization and musn't be used (example in class 'Tank')
 		self._tryUpdate = list()
 		self.actions = {}
+
+	# try action wraps action-methods to wait in the try update list to be handled later on instead of being called immediately
+	@staticmethod
+	def tryAction(action):
+		def __inner(obj, *args, **kwargs):
+			obj._tryUpdate.append(ObjController.Action(obj, action))
+		return __inner
+
+	# can be overridden for more complex behaviour
+	def update(self):
+		for a in self._tryUpdate:
+			a()
+
+	class Action:
+		def __init__(self, obj, action):
+			self.obj = obj
+			self.action = action
+		def __call__(self, *args, **kwargs):
+			self.action(self.obj, *args, **kwargs)
+
 
 class GameObjControlManager:
 	def __init__(self):

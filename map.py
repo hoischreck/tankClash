@@ -16,14 +16,20 @@ class Wall(GraphicalObj):
 		self.color = (0, 0, 0)
 		self.width = 10
 		self.norm = Vector2D.getNormVec(self.start-self.end)
+		self.color = (0, 0, 0, 255)
 
+	# todo: change into polygons? -> made up of walls
 	# todo: add small circles to the end of a wall to make them look "cleaner"
 	# extra width is used for example in finding positions for placing a rectangle, by enhancing the mask size by drawing thicker walls
 	def draw(self, surface=None):
 		s = self.screen if surface is None else surface
-		pygame.draw.line(s, self.color, self.start.toTuple(), self.end.toTuple(), self.width)
-		#pygame.draw.circle(s, self.color, self.start.toTuple(), (self.width+extraWidth)/2)
-		#pygame.draw.circle(s, self.color, self.end.toTuple(), (self.width+extraWidth)/2)
+		#pygame.draw.line(s, self.color, self.start.toTuple(), self.end.toTuple(), self.width) #todo: confirm that performance isn't effected to heavily be drawing rects
+		se = self.end-self.start
+		wallSurface = pygame.Surface((se.magnitude(), self.width), pygame.SRCALPHA)
+		wallSurface.fill(self.color)
+		rotatedWall = pygame.transform.rotate(wallSurface, -se.toDegrees())
+		offset = Vector2D(-rotatedWall.get_width()//2, -rotatedWall.get_height()//2)
+		s.blit(rotatedWall, ((self.start+self.end)*0.5+offset).toTuple())
 
 	# reflects a vector at the norm vector (e.g. used in projectile reflection logic)
 	def reflectVector(self, v):

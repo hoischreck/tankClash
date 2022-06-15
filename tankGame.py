@@ -5,13 +5,12 @@ from math import pi
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from timeit import default_timer
-from random import choice
 
 from PygameCollection.math import Vector2D, rad2deg
 from PygameCollection.gameObjects import MovableSprite, showRect, showMask, showCenter
 from PygameCollection.game import Base2DGame, KeyType
 from PygameCollection.templates import BasicMSpriteController
-from PygameCollection.utils import loadConvFacScaledImg, loadConvScaledImg, showVecDirSprite, showVector
+from PygameCollection.utils import loadConvFacScaledImg, loadConvScaledImg, showVecDirSprite, showVector, printRuntime
 
 from ammo import Ammunition, AmmoType
 from map import Wall, TankMap
@@ -59,7 +58,7 @@ class Tank(MovableSprite, BasicMSpriteController):
 		for f in self._tryUpdate:
 			f(scale)
 
-		super().update()
+		MovableSprite.update(self)
 		# check for collision with map (todo: don't allow objects to pass through wall because of to high speeds)
 		if self.game.map.hitsAnyWall(self):
 			self.pos = posBefore
@@ -67,7 +66,7 @@ class Tank(MovableSprite, BasicMSpriteController):
 			if scale >= threshold:
 				self.update(scale=scale*0.5)
 			else:
-				super().update()
+				MovableSprite.update(self)
 
 		self._tryUpdate = list()
 
@@ -149,10 +148,8 @@ class TankClash(Base2DGame):
 		w, h = m.get_size()
 		xs = list(range(w))
 		ys = list(range(h))
-
 		random.shuffle(xs)
 		random.shuffle(ys)
-
 		for x in xs:
 			for y in ys:
 				if m.get_at((x, y)):
@@ -160,18 +157,16 @@ class TankClash(Base2DGame):
 					if len(pos) >= amount:
 						return pos
 					break #x coordinate is changed
-
 		if not unique:
 			return pos
 
+	#@printRuntime
 	def loop(self):
 		for k in self.controls:
 			if self.key.heldDown(k, KeyType.STRING):
 				self.controls[k]()
 
 		# collision testing
-		#start = default_timer()
-
 		# player collisions
 		# tanks = [p.tank for p in self.players]
 		# t1, t2 = tuple(tanks)
@@ -179,9 +174,8 @@ class TankClash(Base2DGame):
 		# 	print("boom")
 		# player wall collisions
 
-		#print(f"computation time {default_timer()-start}s")
 		# for w in self.map.walls:
-		# 	showVector(self.screen, w.norm, (w.start.x+w.end.x)/2, (w.start.y+w.end.y)/2)
+
 
 		for player in self.players:
 			#showVecDirSprite(player.tank)
