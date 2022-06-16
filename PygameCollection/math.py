@@ -8,11 +8,6 @@ def rad2deg(rad):
 def deg2rad(deg):
 	return pi*deg/180
 
-class Point2D:
-	@classmethod
-	def distance(cls, x1, y1, x2, y2):
-		return math.sqrt((x2 - x1)**2+(y2-y1)**2)
-
 class Vector2D:
 	# np.double = float64
 	def __init__(self, x, y, dtype=np.double):
@@ -167,14 +162,6 @@ class Vector2D:
 		assert isinstance(matrix, Matrix2D)
 		return Vector2D.fromIterable(v1.vec.dot(matrix.matx))
 
-
-# todo: implement?
-class Straight:
-	def __init__(self, supportVector: Vector2D, directionVector: Vector2D):
-		self.sV = supportVector
-		self.dV = directionVector
-
-
 class Matrix2D:
 	def __init__(self, formattedList): # format of iterable must be in analogy to matrix
 		self.matx = np.array(formattedList, dtype=np.double)
@@ -194,3 +181,38 @@ class Matrix2D:
 		i = Vector2D.fromRadiant(radiant)
 		j = Vector2D.fromRadiant(radiant+pi/2)
 		return Matrix2D.fromVectors(i, j)
+
+# todo: implement?
+class Straight2D:
+	def __init__(self, supportVector: Vector2D, directionVector: Vector2D):
+		self.sV = supportVector
+		self.dV = directionVector
+
+	@classmethod
+	def fromStartEnd(cls, start: Vector2D, end: Vector2D):
+		return Straight2D(start, end-start)
+
+
+class Line2D:
+	def __init__(self, start: Vector2D, end: Vector2D):
+		self.start = start
+		self.end = end
+		self.direction = end-start
+		self.norm = Vector2D.getNormVec(self.direction)
+
+	# reflects a vector at the norm vector (e.g. used in projectile reflection logic)
+	def reflectVector(self, v: Vector2D):
+		# handle reflection -> 1.) calc norm vector 2.) compare with direction of shot 3.) combine into a new direction vector
+		normVec = self.norm
+		if v.enclosedAngle(normVec) > pi / 2:
+			normVec.toCounter()  # todo: change logic to return a new vector?
+		v = Vector2D.fromSymReflection(v, normVec)
+		v.toUnitVec()
+		v.toCounter()
+		return v
+
+
+class Point2D:
+	@classmethod
+	def distance(cls, x1, y1, x2, y2):
+		return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
