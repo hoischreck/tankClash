@@ -15,6 +15,8 @@ from PygameCollection.utils import loadConvFacScaledImg, loadConvScaledImg, show
 from ammo import Ammunition, AmmoType
 from map import Wall, TankMap
 
+#todo: finish controller
+
 class Player:
 	def __init__(self, name, id, game):
 		self.name = name

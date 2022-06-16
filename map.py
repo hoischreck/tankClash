@@ -1,11 +1,47 @@
 import csv
 from math import pi
 
-from PygameCollection.math import Vector2D, Point2D
+from PygameCollection.graphics import LinearVecArt2D
+from PygameCollection.math import Vector2D, Point2D, Line2D
 from PygameCollection.gameObjects import GraphicalObj
+from PygameCollection.graphics import LinearVecArt2D
 import pygame
 
-class Wall(GraphicalObj):
+# Used to create polygons made up of "Line2D" instances (e.g. used in collision detection and handling)
+class Line2DPolygon(GraphicalObj):
+	def __init__(self, game, color=(0, 0, 0, 255), lines=None):
+		super().__init__(game)
+		self.lines = [] if lines is None else lines
+		assert all(isinstance(l, Line2D) for l in self.lines)
+		self.color = color
+
+	def addLinePt(self, start, end):
+		self.lines.append(Line2D(*Vector2D.fromIterables(start, end)))
+
+	def addLineVec(self, start, end):
+		self.lines.append(Line2D(start, end))
+
+	def draw(self, surface=None):
+		if len(self.lines) == 0:
+			return
+		s = self.screen if surface is None else surface
+		pygame.draw.polygon(s, self.color, self.linesToCoordinates())
+
+	def linesToCoordinates(self):
+		return [pos.toTuple() for line in self.lines for pos in (line.start, line.end)]
+
+	@classmethod
+	def fromLinearVecArt(cls, game, lva: LinearVecArt2D):
+		l2dPolygon = Line2DPolygon(game)
+		points = lva.getPointsV2D()
+		for i, p in enumerate(points):
+			if i < len(points)-1:
+				l2dPolygon.addLineVec(p, points[i+1])
+			else:
+				l2dPolygon.addLineVec(p, points[0])
+		return l2dPolygon
+
+class Wall(Line2DPolygon):
 	#todo: use
 	STANDARD_WIDTH = 10
 
@@ -15,8 +51,14 @@ class Wall(GraphicalObj):
 		self.end = Vector2D.fromIterable(end)
 		self.color = (0, 0, 0)
 		self.width = 10
-		self.norm = Vector2D.getNormVec(self.start-self.end)
+		#self.norm = Vector2D.getNormVec(self.start-self.end)
 		self.color = (0, 0, 0, 255)
+
+		self.polygon = self._buildPolygon()
+
+	# polygon is build once instead of every draw call to save computation time
+	def _buildPolygon(self):
+		pass
 
 	# todo: change into polygons? -> made up of walls
 	# todo: add small circles to the end of a wall to make them look "cleaner"

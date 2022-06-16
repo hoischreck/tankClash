@@ -106,6 +106,11 @@ class Vector2D:
 		return Vector2D(*iterable, dtype=dtype)
 
 	@classmethod
+	def fromIterables(cls, *iterables, dtype=np.double):
+		assert all(len(i) == 2 for i in iterables)
+		return [Vector2D(*i, dtype=dtype) for i in iterables]
+
+	@classmethod
 	def fromRadiant(cls, radiant, dtype=np.double):
 		return Vector2D(cos(radiant), sin(radiant), dtype=dtype)
 
@@ -121,6 +126,10 @@ class Vector2D:
 	@classmethod
 	def asCounterVector(cls, v):
 		return Vector2D(v.x*-1, v.y*-1)
+
+	@classmethod
+	def asRounded(cls, v, digits=0):
+		return Vector2D(round(v.x, digits), round(v.y, digits))
 
 	@classmethod
 	def getNormVec(cls, v):
@@ -155,7 +164,7 @@ class Vector2D:
 	# v1 is supposed to become collinear to v2
 	@classmethod
 	def fromCollinearity(cls, v1, v2):
-		return v2*v1.magnitude()
+		return Vector2D.asUnitVector(v2)*v1.magnitude()
 
 	@classmethod
 	def fromMatrixVecMul(cls, v1, matrix):

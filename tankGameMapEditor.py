@@ -4,9 +4,10 @@ from enum import Enum
 from PygameCollection.math import Vector2D, rad2deg
 from PygameCollection.game import KeyType
 from PygameCollection.utils import loadConvFacScaledImg, loadConvScaledImg, showVecDirSprite, showVector
+from PygameCollection.graphics import LinearVecArt2D
 
 from ammo import AmmoType
-from map import Wall, TankMap
+from map import Wall, TankMap, Line2DPolygon
 
 from tankGame import TankClash, Tank, Player
 
@@ -62,13 +63,25 @@ class TankClashMapEditor(TankClash):
 
 		self.drawingQueue.append(p1.tank)
 
+		self.p = Line2DPolygon.fromLinearVecArt(self, LinearVecArt2D(
+			pos=Vector2D(self.w//2, self.h//2),
+			pathVectors=[
+				Vector2D(100, 0),
+				Vector2D(0, 50),
+				Vector2D(-100, 0),
+				Vector2D(0, -50)
+			]
+		))
+
 	def loop(self):
+		self.p.draw()
+
 		for k in self.controls:
 			if self.key.heldDown(k, KeyType.STRING):
 				self.controls[k]()
 		# snap courser to closest wall point
 		#if self.key.heldDown(pygame.K_LSHIFT) and self.key.keyDown(pygame.K_s) and self.startPoint is None:
-
+		showVecDirSprite(list(self.players)[0].tank)
 		# apply snapping mode
 		if self.mouse.heldDown(3):
 			# if start point was already set

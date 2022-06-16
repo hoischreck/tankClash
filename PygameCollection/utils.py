@@ -28,7 +28,7 @@ def loadConvScaledImg(pathTuple, newDimensions=None, preserveAlpha=True):
 # class linearVectorArt:
 #     pass
 
-# todo: implement correctly -> generalize drawing arrows
+# todo: implement correctly -> generalize drawing arrows (see LinearVecArt2D-class)
 def showVector(screen, vector: Vector2D, x, y, length=100, lineWidth=7, headLength=20, headWidth=14, scale=True):
     pos = Vector2D(x, y)
     vectors = list()
@@ -47,9 +47,9 @@ def showVector(screen, vector: Vector2D, x, y, length=100, lineWidth=7, headLeng
     vectors.append([Vector2D(headWidth//2-lineWidth//2, 0)])
     vectors.append([Vector2D(-headWidth//2, headLength)])
 
+    offset = pi / 2  # based on the fact, that the arrow is drawn facing "downwards"
+    m = Matrix2D.fromRotation(offset - vector.toRadiant())  # todo: why is this argument correct??? why not vector.toRadiant()-offset
     for i, v in enumerate(vectors):
-        offset = pi/2 # based on the fact, that the arrow is drawn facing "downwards"
-        m = Matrix2D.fromRotation(offset-vector.toRadiant()) #todo: why is this argument correct??? why not vector.toRadiant()-offset
         vectors[i] = [Vector2D.fromMatrixVecMul(vectors[i][0], m)]
 
     for i, v in enumerate(vectors):
@@ -59,7 +59,7 @@ def showVector(screen, vector: Vector2D, x, y, length=100, lineWidth=7, headLeng
             vectors[i].append(vectors[i-1][1]+vectors[i-1][0])
 
         points.append(v[1].toTuple())
-    points.append((vectors[1][1]).toTuple())
+    del points[0]
 
     pygame.draw.polygon(screen, (255, 0, 0), points)
 
