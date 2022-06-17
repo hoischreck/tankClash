@@ -106,7 +106,7 @@ class TankMap(GraphicalObj):
 		self._renewMask()
 
 	def removeLast(self, minAmount=0):
-		if len(self.walls) > 0:
+		if len(self.walls) > minAmount:
 			del self.walls[-1]
 			self._renewMask()
 

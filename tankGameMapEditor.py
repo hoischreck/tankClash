@@ -12,10 +12,12 @@ from map import Wall, TankMap, Line2DPolygon
 from tankGame import TankClash, Tank, Player
 
 class ClipMode(Enum):
+	FREE = "Frei"
 	HORIZONTAL = "Horizontal"
 	VERTICAL = "Vertikal"
 	DIAGONAL = "Diagonal"
 	CORNER = "Corner"
+
 
 class TankClashMapEditor(TankClash):
 
@@ -26,7 +28,7 @@ class TankClashMapEditor(TankClash):
 		self.startPoint = None
 		self.endPoint = None
 		self.fixedTargetEnd = None
-		self.clipMode = ClipMode.HORIZONTAL
+		self.clipMode = ClipMode.FREE
 		self.cornerMode = True
 		self.font = pygame.font.Font(pygame.font.get_default_font(), 30)
 
@@ -65,8 +67,6 @@ class TankClashMapEditor(TankClash):
 		self.drawingQueue.append(p1.tank)
 
 	def loop(self):
-		self.p.draw()
-
 		for k in self.controls:
 			if self.key.heldDown(k, KeyType.STRING):
 				self.controls[k]()
@@ -77,7 +77,9 @@ class TankClashMapEditor(TankClash):
 		if self.mouse.heldDown(3):
 			# if start point was already set
 			if self.startPoint is not None:
-				if self.clipMode == ClipMode.HORIZONTAL:
+				if self.clipMode == ClipMode.FREE:
+					self.fixedTargetEnd = self.mouse.getPos()
+				elif self.clipMode == ClipMode.HORIZONTAL:
 					self.fixedTargetEnd = (self.mouse.getPos()[0], self.startPoint[1])
 				elif self.clipMode == ClipMode.VERTICAL:
 					self.fixedTargetEnd = (self.startPoint[0], self.mouse.getPos()[1])
@@ -117,12 +119,14 @@ class TankClashMapEditor(TankClash):
 		if self.key.keyUp(pygame.K_z):
 			self.map.removeLast(minAmount=4) #4 base walls are used as a boundary
 		elif self.key.keyUp(pygame.K_1):
-			self.clipMode = ClipMode.HORIZONTAL
+			self.clipMode = ClipMode.FREE
 		elif self.key.keyUp(pygame.K_2):
-			self.clipMode = ClipMode.VERTICAL
+			self.clipMode = ClipMode.HORIZONTAL
 		elif self.key.keyUp(pygame.K_3):
-			self.clipMode = ClipMode.DIAGONAL
+			self.clipMode = ClipMode.VERTICAL
 		elif self.key.keyUp(pygame.K_4):
+			self.clipMode = ClipMode.DIAGONAL
+		elif self.key.keyUp(pygame.K_c):
 			self.cornerMode = not self.cornerMode
 
 		# render clipping mode as text
