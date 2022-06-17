@@ -209,25 +209,15 @@ class Straight2D:
 		return Point2D.distance(x, y, xp, yp)
 
 	def includesPoint(self, x, y):
-		if self.dV.x == 0:
-			return self.sV.x == x
-		elif self.dV.y == 0:
-			return self.sV.y == y
-		else:
-			return (x-self.sV.x)/(self.dV.x) == (y-self.sV.y)/(self.dV.y)
+		return int((x-self.sV.x)*(self.dV.y)) == int((y-self.sV.y)*(self.dV.x))
 
 	# if point is on straight, stretch factor is returned
 	def includesPointStFactor(self, x, y):
-		if self.dV.x == 0:
-			if self.sV.x == x:
+		if int((x-self.sV.x)*(self.dV.y)) == int((y-self.sV.y)*(self.dV.x)):
+			if self.dV.x == 0:
 				return (y - self.sV.y) / (self.dV.y)
-		elif self.dV.y == 0:
-			if self.sV.y == y:
-				return (x - self.sV.x) / (self.dV.x)
-		else:
-			if (v := (x - self.sV.x) / (self.dV.x)) == (y - self.sV.y) / (self.dV.y):
-				return v
-
+			else:
+				return (x - self.sV.x) / (self.dV.x) # =v
 
 	@classmethod
 	def fromStartEnd(cls, start: Vector2D, end: Vector2D):
@@ -247,41 +237,28 @@ class Line2D:
 		yp = y if m is None else m * (xp - self.start.x) + self.start.y
 		# if line isn't the closest reference point, start and end point are taken as reference
 		if self.includesPoint(xp, yp):
-			print("intersected")
 			return Point2D.distance(x, y, xp, yp)
 		else:
-			print("not intersected")
 			return min(Point2D.distance(x, y, *self.start.toTuple()), Point2D.distance(x, y, *self.end.toTuple()))
 
 
 	def includesPoint(self, x, y):
-		if self.dV.x == 0:
-			if self.start.x == x:
+		#todo: rounding is necessary (any better method or more general approach)? (also see StraightClass)
+
+		if int((x-self.start.x)*(self.dV.y)) == int((y-self.start.y)*(self.dV.x)):
+			if self.dV.x == 0:
 				return 0 <= (y - self.start.y) / (self.dV.y) <= 1
-		elif self.dV.y == 0:
-			if self.start.y == y:
+			else:
 				return 0 <= (x - self.start.x) / (self.dV.x) <= 1
-		else:
-
-			print("does it include?:", x, y, "->", (x - self.start.x) / (self.dV.x), (y - self.start.y) / (self.dV.y))
-
-			if (v := (x - self.start.x) / (self.dV.x)) == (y - self.start.y) / (self.dV.y):
-				return 0 <= v <= 1
-			return False
-
+		return False
 
 	def includesPointStFactor(self, x, y):
-		if self.dV.x == 0:
-			if self.start.x == x:
+		if int((x - self.start.x) * (self.dV.y)) == int((y - self.start.y) * (self.dV.x)):
+			if self.dV.x == 0:
 				if 0 <= (v := (y - self.start.y) / (self.dV.y)) <= 1:
 					return v
-		elif self.dV.y == 0:
-			if self.start.y == y:
-				if  0 <= (v := (x - self.start.x) / (self.dV.x)) <= 1:
-					return v
-		else:
-			if (v := (x - self.start.x) / (self.dV.x)) == (y - self.start.y) / (self.dV.y):
-				if 0 <= v <= 1:
+			else:
+				if 0 <= (v := (x - self.start.x) / (self.dV.x)) <= 1:
 					return v
 
 	# reflects a vector at the norm vector (e.g. used in projectile reflection logic)

@@ -30,7 +30,7 @@ class CanonBall(Projectile):
 		if (wall := self.game.map.hitsWall(self)) and wall != self.lastCollided:
 			self.lastCollided = wall
 			line, _ = wall.getClosestLine(*self.pos.toTuple())
-			pygame.draw.line(self.screen, (255, 0, 0), line.start.toTuple(), line.end.toTuple(), 10)
+			#pygame.draw.line(self.screen, (255, 0, 0), line.start.toTuple(), line.end.toTuple(), 10)
 			# todo: handle edge case -> projectile is spawned inside wall
 			self.pos = oldPos
 			self.dir = line.reflectVector(self.dir)

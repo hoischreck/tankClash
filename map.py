@@ -56,7 +56,7 @@ class Wall:
 		self.startToEnd = self.end-self.start
 		self.length = self.startToEnd.magnitude()
 		self.color = (0, 0, 0)
-		self.width = 50
+		self.width = 10
 		#self.norm = Vector2D.getNormVec(self.start-self.end)
 		self.color = (0, 0, 0, 255)
 
@@ -80,11 +80,6 @@ class Wall:
 		return Line2DPolygon.fromLinearVecArt(self.game, lva)
 
 	def getClosestLine(self, x, y):
-		print("")
-		lines = [(l, l.distanceToPoint(x, y)) for l in self.polygon.lines]
-		print("closest to:", x, y)
-		for l in lines:
-			print(l[0].start, l[0].end, l[1])
 		return sorted({l: l.distanceToPoint(x, y) for l in self.polygon.lines}.items(), key=lambda x: x[1])[0]
 
 	# extra width is used for example in finding positions for placing a rectangle, by enhancing the mask size by drawing thicker walls
