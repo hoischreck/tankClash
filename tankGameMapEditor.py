@@ -21,6 +21,7 @@ class TankClashMapEditor(TankClash):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+		self.tps = 15
 
 		self.startPoint = None
 		self.endPoint = None
@@ -64,14 +65,16 @@ class TankClashMapEditor(TankClash):
 		self.drawingQueue.append(p1.tank)
 
 		self.p = Line2DPolygon.fromLinearVecArt(self, LinearVecArt2D(
-			pos=Vector2D(self.w//2, self.h//2),
+			pos=Vector2D(10, 10),
 			pathVectors=[
 				Vector2D(100, 0),
 				Vector2D(0, 50),
 				Vector2D(-100, 0),
 				Vector2D(0, -50)
-			]
+			],
+			posOffset=Vector2D(10, 10)
 		))
+		self.p.color = (255, 0, 0)
 
 	def loop(self):
 		self.p.draw()

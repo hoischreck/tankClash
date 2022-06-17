@@ -7,7 +7,8 @@ from PygameCollection.gameObjects import GraphicalObj
 from PygameCollection.graphics import LinearVecArt2D
 import pygame
 
-# Used to create polygons made up of "Line2D" instances (e.g. used in collision detection and handling)
+#todo: add options for filling or line width
+#Used to create polygons made up of "Line2D" instances (e.g. used in collision detection and handling)
 class Line2DPolygon(GraphicalObj):
 	def __init__(self, game, color=(0, 0, 0, 255), lines=None):
 		super().__init__(game)
@@ -41,51 +42,55 @@ class Line2DPolygon(GraphicalObj):
 				l2dPolygon.addLineVec(p, points[0])
 		return l2dPolygon
 
-class Wall(Line2DPolygon):
+# todo: wall as subclass?
+class Wall:
 	#todo: use
 	STANDARD_WIDTH = 10
 
 	def __init__(self, game, start, end):
-		super().__init__(game)
+		self.game = game
+		self.screen = self.game.screen
+
 		self.start = Vector2D.fromIterable(start)
 		self.end = Vector2D.fromIterable(end)
+		self.startToEnd = self.end-self.start
+		self.length = self.startToEnd.magnitude()
 		self.color = (0, 0, 0)
-		self.width = 10
+		self.width = 50
 		#self.norm = Vector2D.getNormVec(self.start-self.end)
 		self.color = (0, 0, 0, 255)
 
-		self.polygon = self._buildPolygon()
+		self.line: Line2D = Line2D(self.start, self.end)
+		self.polygon: Line2DPolygon = self._buildPolygon()
 
 	# polygon is build once instead of every draw call to save computation time
 	def _buildPolygon(self):
-		pass
+		lva = LinearVecArt2D(
+			pos=self.start,
+			pathVectors=[
+				Vector2D(self.length, 0),
+				Vector2D(0, self.width),
+				Vector2D(-self.length, 0),
+				Vector2D(0, -self.width)
+			],
+			posOffset=Vector2D(0, -self.width//2),
+			closed=True
+		)
+		lva.rotate(self.startToEnd.toRadiant())
+		return Line2DPolygon.fromLinearVecArt(self.game, lva)
 
-	# todo: change into polygons? -> made up of walls
-	# todo: add small circles to the end of a wall to make them look "cleaner"
+	def getClosestLine(self, x, y):
+		print("")
+		lines = [(l, l.distanceToPoint(x, y)) for l in self.polygon.lines]
+		print("closest to:", x, y)
+		for l in lines:
+			print(l[0].start, l[0].end, l[1])
+		return sorted({l: l.distanceToPoint(x, y) for l in self.polygon.lines}.items(), key=lambda x: x[1])[0]
+
 	# extra width is used for example in finding positions for placing a rectangle, by enhancing the mask size by drawing thicker walls
 	def draw(self, surface=None):
 		s = self.screen if surface is None else surface
-		#pygame.draw.line(s, self.color, self.start.toTuple(), self.end.toTuple(), self.width) #todo: confirm that performance isn't effected to heavily be drawing rects
-		se = self.end-self.start
-		wallSurface = pygame.Surface((se.magnitude(), self.width), pygame.SRCALPHA)
-		wallSurface.fill(self.color)
-		rotatedWall = pygame.transform.rotate(wallSurface, -se.toDegrees())
-		offset = Vector2D(-rotatedWall.get_width()//2, -rotatedWall.get_height()//2)
-		s.blit(rotatedWall, ((self.start+self.end)*0.5+offset).toTuple())
-
-	# reflects a vector at the norm vector (e.g. used in projectile reflection logic)
-	def reflectVector(self, v):
-		# handle reflection -> 1.) calc norm vector 2.) compare with direction of shot 3.) combine into a new direction vector
-		normVec = self.norm
-		if v.enclosedAngle(normVec) > pi / 2:
-			normVec.toCounter() #todo: change logic to return a new vector?
-		v = Vector2D.fromSymReflection(v, normVec)
-		v.toUnitVec()
-		v.toCounter()
-		return v
-
-	def __len__(self):
-		return len(self.start-self.end)
+		self.polygon.draw(s)
 
 # Basically a collection of walls
 class TankMap(GraphicalObj):
@@ -160,11 +165,8 @@ class TankMap(GraphicalObj):
 		m.invert()
 		return m
 
-	def _distanceToWall(self, x, y, wall):
-		m = (wall.end-wall.start).slope()
-		xp = wall.start.x if m is None else (m**2*wall.start.x+x-m*(wall.start.y-y))/(m**2+1)
-		yp = y if m is None else m*(xp-wall.start.x)+wall.start.y
-		return Point2D.distance(x, y, xp, yp)
+	def _distanceToWall(self, x, y, wall: Wall):
+		return wall.line.distanceToPoint(x, y)
 
 	def _renewMask(self):
 		self.mask = self.__maskFromWalls()

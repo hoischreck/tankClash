@@ -1,5 +1,5 @@
 import math
-from math import pi, sin, cos, acos
+from math import pi, sin, cos, acos, tan
 import numpy as np
 
 def rad2deg(rad):
@@ -54,6 +54,9 @@ class Vector2D:
 		self.x = -self.x
 		self.y = -self.y
 		self.vec = np.array((self.x, self.y), dtype=self.dtype)
+
+	def isZero(self):
+		return self.x == 0 and self.y == 0
 
 	#
 	# def makeCollinearTo(self, v2):
@@ -191,11 +194,40 @@ class Matrix2D:
 		j = Vector2D.fromRadiant(radiant+pi/2)
 		return Matrix2D.fromVectors(i, j)
 
-# todo: implement?
+# todo: implement? -> change convention to work with vectors instead of x, y pairs?
+# what about Vector(0, 0)?
 class Straight2D:
 	def __init__(self, supportVector: Vector2D, directionVector: Vector2D):
+		assert not directionVector.isZero()
 		self.sV = supportVector
 		self.dV = directionVector
+
+	def distanceToPoint(self, x, y):
+		m = self.dV.slope()
+		xp = self.sV.x if m is None else (m ** 2 * self.sV.x + x - m * (self.sV.y - y)) / (m ** 2 + 1)
+		yp = y if m is None else m * (xp - self.sV.x) + self.sV.y
+		return Point2D.distance(x, y, xp, yp)
+
+	def includesPoint(self, x, y):
+		if self.dV.x == 0:
+			return self.sV.x == x
+		elif self.dV.y == 0:
+			return self.sV.y == y
+		else:
+			return (x-self.sV.x)/(self.dV.x) == (y-self.sV.y)/(self.dV.y)
+
+	# if point is on straight, stretch factor is returned
+	def includesPointStFactor(self, x, y):
+		if self.dV.x == 0:
+			if self.sV.x == x:
+				return (y - self.sV.y) / (self.dV.y)
+		elif self.dV.y == 0:
+			if self.sV.y == y:
+				return (x - self.sV.x) / (self.dV.x)
+		else:
+			if (v := (x - self.sV.x) / (self.dV.x)) == (y - self.sV.y) / (self.dV.y):
+				return v
+
 
 	@classmethod
 	def fromStartEnd(cls, start: Vector2D, end: Vector2D):
@@ -206,8 +238,51 @@ class Line2D:
 	def __init__(self, start: Vector2D, end: Vector2D):
 		self.start = start
 		self.end = end
-		self.direction = end-start
-		self.norm = Vector2D.getNormVec(self.direction)
+		self.dV = end-start
+		self.norm = Vector2D.getNormVec(self.dV)
+
+	def distanceToPoint(self, x, y):
+		m = self.dV.slope()
+		xp = self.start.x if m is None else (m ** 2 * self.start.x + x - m * (self.start.y - y)) / (m ** 2 + 1)
+		yp = y if m is None else m * (xp - self.start.x) + self.start.y
+		# if line isn't the closest reference point, start and end point are taken as reference
+		if self.includesPoint(xp, yp):
+			print("intersected")
+			return Point2D.distance(x, y, xp, yp)
+		else:
+			print("not intersected")
+			return min(Point2D.distance(x, y, *self.start.toTuple()), Point2D.distance(x, y, *self.end.toTuple()))
+
+
+	def includesPoint(self, x, y):
+		if self.dV.x == 0:
+			if self.start.x == x:
+				return 0 <= (y - self.start.y) / (self.dV.y) <= 1
+		elif self.dV.y == 0:
+			if self.start.y == y:
+				return 0 <= (x - self.start.x) / (self.dV.x) <= 1
+		else:
+
+			print("does it include?:", x, y, "->", (x - self.start.x) / (self.dV.x), (y - self.start.y) / (self.dV.y))
+
+			if (v := (x - self.start.x) / (self.dV.x)) == (y - self.start.y) / (self.dV.y):
+				return 0 <= v <= 1
+			return False
+
+
+	def includesPointStFactor(self, x, y):
+		if self.dV.x == 0:
+			if self.start.x == x:
+				if 0 <= (v := (y - self.start.y) / (self.dV.y)) <= 1:
+					return v
+		elif self.dV.y == 0:
+			if self.start.y == y:
+				if  0 <= (v := (x - self.start.x) / (self.dV.x)) <= 1:
+					return v
+		else:
+			if (v := (x - self.start.x) / (self.dV.x)) == (y - self.start.y) / (self.dV.y):
+				if 0 <= v <= 1:
+					return v
 
 	# reflects a vector at the norm vector (e.g. used in projectile reflection logic)
 	def reflectVector(self, v: Vector2D):

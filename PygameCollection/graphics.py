@@ -14,7 +14,7 @@ class LinearVecArt2D:
 				 closed=True, closeOrigin=True, autoClose=False
 				 ):
 		self.pos = pos #point of reference (moves the origin)
-		self.vectors = [[v] for v in pathVectors]
+		self.vectors = [[v, None] for v in pathVectors]
 		self.pOffset = posOffset # will apply a given offset to all points (useful when centering for example)
 		self.rOffset = rotOffset # describes vector-art-axis rotation from x axis
 		self.closed = closed # if closed, last point must end at start
@@ -28,16 +28,17 @@ class LinearVecArt2D:
 		if rot != 0:
 			m = Matrix2D.fromRotation(self.rOffset - rot)  # todo: why is this argument correct??? why not vector.toRadiant()-offset
 			for i, v in enumerate(self.vectors):
-				self.vectors[i] = [Vector2D.fromMatrixVecMul(v[0], m)]
+				self.vectors[i] = [Vector2D.fromMatrixVecMul(v[0], m), None]
+			self.pOffset = Vector2D.fromMatrixVecMul(self.pOffset, m) # rotation positional offset must also be respected
 
 		# calculate points based on path described by vectors
 		for i, v in enumerate(self.vectors):
 			pos = self.pos + v[0] if i == 0 else self.vectors[i-1][1] + v[0]
-			self.vectors[i].append(pos)
+			self.vectors[i] = [v[0], pos]
+
 		for v in self.vectors:
 			v[1] = v[1] + self.pOffset
 			p.append(v[1])
-
 		if not self.closeOrigin:
 			del p[0]
 
