@@ -48,8 +48,9 @@ class TankClashMapEditor(TankClash):
 		self.map.addWallV((self.w-offset, offset), self.h)
 
 		###
-
-		# scale map
+		# for w in self.map.walls:
+		# 	print(w.start, w.end)
+		# # scale map
 		# referenceSize = (1920, 1080)
 		# currentSize = self.windowSize
 		# scalingVec = Vector2D(*[c2 / c1 for c1, c2 in zip(referenceSize, currentSize)])
