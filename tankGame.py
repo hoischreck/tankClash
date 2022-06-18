@@ -94,6 +94,7 @@ class TankClash(Base2DGame):
 		super().__init__(*args, **kwargs)
 		self.players = set()
 		self.controls = {}
+		self.windowSize = (1080, 720)
 
 
 	def setup(self):

@@ -42,6 +42,7 @@ class Line2DPolygon(GraphicalObj):
 				l2dPolygon.addLineVec(p, points[0])
 		return l2dPolygon
 
+
 # todo: wall as subclass?
 class Wall:
 	#todo: use
@@ -87,6 +88,7 @@ class Wall:
 		s = self.screen if surface is None else surface
 		self.polygon.draw(s)
 
+
 # Basically a collection of walls
 class TankMap(GraphicalObj):
 	DATA_DELIMITER = ","
@@ -97,9 +99,16 @@ class TankMap(GraphicalObj):
 		self.mask: pygame.mask.Mask = None
 		self._renewMask()
 
-	def addWall(self, start, end):
+	def addWall(self, start, end, renewMask=True):
 		self.walls.append(Wall(self.game, start, end))
-		self._renewMask() # Size effects "hits any wall"
+		if renewMask:
+			self._renewMask() # Size effects "hits any wall"
+
+	def addWalls(self, startEndTuples, renewMask=True):
+		for w in startEndTuples:
+			self.addWall(*w, renewMask=False)
+		if renewMask:
+			self._renewMask()
 
 	def removeWall(self, wall):
 		self.walls.remove(wall)

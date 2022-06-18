@@ -37,6 +37,7 @@ class TankClashMapEditor(TankClash):
 		AmmoType.setImage(AmmoType.NORMAL, loadConvScaledImg(("assets", "img", "ProjectileBall.png"), (30, 30)))
 
 		self.map = TankMap(self)
+
 		self.drawingQueue.append(self.map)
 		# base map
 		offset = Wall.STANDARD_WIDTH//2
@@ -45,6 +46,28 @@ class TankClashMapEditor(TankClash):
 		self.map.addWallH((0, self.h-offset), self.w)
 		self.map.addWallV((offset-1, offset), self.h)
 		self.map.addWallV((self.w-offset, offset), self.h)
+
+		###
+
+		# scale map
+		# referenceSize = (1920, 1080)
+		# currentSize = self.windowSize
+		# scalingVec = Vector2D(*[c2 / c1 for c1, c2 in zip(referenceSize, currentSize)])
+		# print(scalingVec)
+		# walls = list()
+		# for w in self.map.walls:
+		# 	walls.append(((w.start*scalingVec.x).toTuple(), (w.end*scalingVec.y).toTuple()))
+		#
+		# print(walls)
+		#
+		# scaledMap = TankMap(self)
+		# scaledMap.addWalls(walls)
+		#
+		# self.drawingQueue.remove(self.map)
+		# self.map = scaledMap
+		# self.drawingQueue.append(self.map)
+
+		###
 
 		p1 = Player("Ivo", 1, self)
 		img = loadConvFacScaledImg(("assets", "img", "TankBlue.png"), 0.5)
